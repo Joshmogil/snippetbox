@@ -6,20 +6,24 @@ import (
 "html/template"
 "log"
 "net/http"
+"time"
 "os"
 "github.com/Joshmogil/snippetbox/pkg/models/mysql"
 _ "github.com/go-sql-driver/mysql"
+"github.com/golangcollege/sessions"
 )
 
 type Config struct {
 	Addr		string
 	StaticDir	string
 	dsn			string
+	secret		string
 }
 
 type application struct {
 	errorLog 	*log.Logger
 	infoLog 	*log.Logger
+	session 	*sessions.Session
 	snippets 	*mysql.SnippetModel
 	templateCache map[string]*template.Template
 }
@@ -31,6 +35,8 @@ func main() {
 	flag.StringVar(&cfg.Addr,"addr", ":4000", "HTTP net addr")
 	flag.StringVar(&cfg.StaticDir, "static-dir","./ui/static","Path to static assets")
 	flag.StringVar(&cfg.dsn,"dsn", "web:password@/snippetbox?parseTime=true", "MySQL database connection string")
+	flag.StringVar(&cfg.secret, "secret", "s6Ndh+pPbnzHbS*+9Pk8qGWhTzbpa@ge", "Secret for session manager")
+	
 	//dsn := flag.String("dsn", "web:password@/snippetbox?parseTime=true", "MySQL database connection string")
 
 	flag.Parse()
@@ -50,11 +56,15 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+	session := sessions.New([]byte(cfg.secret))
+	session.Lifetime = 12 * time.Hour
+
 	app := &application{
-		errorLog:	errorLog,
-		infoLog: 	infoLog,
-		snippets:	&mysql.SnippetModel{DB: db},
-		templateCache: templateCache,
+		errorLog:		errorLog,
+		infoLog: 		infoLog,
+		session: 		session,
+		snippets:		&mysql.SnippetModel{DB: db},
+		templateCache: 	templateCache,
 	}
 
 	srv := &http.Server {
