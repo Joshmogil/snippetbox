@@ -14,6 +14,10 @@ _ "github.com/go-sql-driver/mysql"
 "github.com/golangcollege/sessions"
 )
 
+type contextKey string
+
+var contextKeyUser = contextKey("user")
+
 type Config struct {
 	Addr		string
 	StaticDir	string

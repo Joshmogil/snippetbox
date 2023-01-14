@@ -6,9 +6,12 @@ import (
 	"bytes"
 	"runtime/debug"
 	"time"
-
+	"github.com/Joshmogil/snippetbox/pkg/models"
 	"github.com/justinas/nosurf"
 )
+
+
+
 
 func (app *application) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
@@ -58,6 +61,11 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 	buf.WriteTo(w)
 }
 
-func (app *application) authenticatedUser(r *http.Request) int {
-	return app.session.GetInt(r, "userID")
-}
+
+func (app *application) authenticatedUser(r *http.Request) *models.User {
+	user, ok := r.Context().Value(contextKeyUser).(*models.User)
+	if !ok {
+	return nil
+	}
+	return user
+	}
